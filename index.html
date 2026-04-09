@@ -590,17 +590,18 @@
         }
 
         try {
-          this.statusText.textContent = 'Loading audio…';
-          const [unmixedBuffer, mixedBuffer] = await Promise.all([
-            this.loadBuffer(this.config.unmixedSrc),
-            this.loadBuffer(this.config.mixedSrc),
-          ]);
+          this.errorBox.textContent = '';
+          this.errorBox.classList.add('show');
+          this.setStatus('Loading unmixed…');
+          const unmixedBuffer = await this.loadBuffer(this.config.unmixedSrc, 'Unmixed');
+          this.setStatus('Loading mixed…');
+          const mixedBuffer = await this.loadBuffer(this.config.mixedSrc, 'Mixed');
           this.state.unmixedBuffer = unmixedBuffer;
           this.state.mixedBuffer = mixedBuffer;
           this.state.duration = Math.min(unmixedBuffer.duration, mixedBuffer.duration);
           this.state.isReady = true;
           this.playPauseBtn.disabled = false;
-          this.statusText.textContent = 'Ready';
+          this.setStatus('Ready');
           this.updateABButtons();
           this.updateTimeUI(0);
         } catch (err) {
@@ -610,20 +611,45 @@
         }
       };
 
-      ABPlayer.prototype.loadBuffer = async function (url) {
-        const res = await fetch(url, { mode: 'cors' });
+      ABPlayer.prototype.loadBuffer = async function (url, label) {
+        this.log(label + ': fetching ' + url);
+        const res = await this.withTimeout(fetch(url, { mode: 'cors', cache: 'no-store' }), 15000, label + ' fetch');
+        this.log(label + ': response ' + res.status + ' ' + (res.headers.get('content-type') || 'unknown content-type'));
         if (!res.ok) {
           throw new Error(`Failed to fetch audio: ${url} (${res.status})`);
         }
-        const arr = await res.arrayBuffer();
-        return await this.ctx.decodeAudioData(arr.slice(0));
+        const arr = await this.withTimeout(res.arrayBuffer(), 15000, label + ' arrayBuffer');
+        this.log(label + ': bytes ' + arr.byteLength);
+        this.log(label + ': decoding');
+        const decoded = await this.withTimeout(this.ctx.decodeAudioData(arr.slice(0)), 15000, label + ' decode');
+        this.log(label + ': decoded duration ' + decoded.duration.toFixed(2) + 's');
+        return decoded;
       };
 
       ABPlayer.prototype.fail = function (message) {
         this.statusText.textContent = 'Error';
-        this.errorBox.textContent = message;
+        this.errorBox.textContent = (this.errorBox.textContent ? this.errorBox.textContent + '\n' : '') + message;
         this.errorBox.classList.add('show');
         this.playPauseBtn.disabled = true;
+      };
+
+      ABPlayer.prototype.log = function (message) {
+        console.log('[ABPlayer]', message);
+        const existing = this.errorBox.textContent ? this.errorBox.textContent + '\n' : '';
+        this.errorBox.textContent = existing + message;
+        this.errorBox.classList.add('show');
+      };
+
+      ABPlayer.prototype.setStatus = function (message) {
+        this.statusText.textContent = message;
+        this.log(message);
+      };
+
+      ABPlayer.prototype.withTimeout = function (promise, ms, label) {
+        return Promise.race([
+          promise,
+          new Promise((_, reject) => setTimeout(() => reject(new Error(label + ' timed out after ' + ms + 'ms')), ms))
+        ]);
       };
 
       ABPlayer.prototype.formatTime = function (seconds) {
@@ -778,7 +804,7 @@
         this.updateABButtons();
 
         if (!this.state.isPlaying || !this.state.unmixedGain || !this.state.mixedGain) {
-          this.statusText.textContent = 'Ready';
+          this.setStatus('Ready');
           return;
         }
 

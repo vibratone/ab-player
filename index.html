@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>A/B Audio Comparison Player</title>
+  <style>
+    :root {
+      --bg: #0f0f10;
+      --panel: #18181b;
+      --panel-2: #222226;
+      --text: #f5f5f5;
+      --muted: #b8b8c2;
+      --accent: #ffffff;
+      --danger: #ff5f5f;
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      height: 100%;
+    }
+
+    body {
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 12px;
+    }
+
+    .player {
+      width: 100%;
+      max-width: 860px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)), var(--bg);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+    }
+
+    .top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .title-wrap {
+      min-width: 0;
+      flex: 1 1 260px;
+    }
+
+    .eyebrow {
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .title {
+      font-size: 24px;
+      line-height: 1.15;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--muted);
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.04);
+      border-radius: 999px;
+      min-height: 40px;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 5px rgba(255,255,255,0.04);
+      flex: 0 0 auto;
+    }
+
+    .main {
+      background: rgba(255,255,255,0.03);
+      border-radius: 16px;
+      padding: 14px;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .controls-row {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .play-btn {
+      appearance: none;
+      border: 0;
+      border-radius: 999px;
+      width: 58px;
+      height: 58px;
+      font-size: 18px;
+      font-weight: 700;
+      background: var(--accent);
+      color: #111;
+      cursor: pointer;
+    }
+
+    .play-btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .time {
+      font-variant-numeric: tabular-nums;
+      color: var(--muted);
+      font-size: 14px;
+      min-width: 94px;
+      text-align: right;
+    }
+
+    .seek-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .seek {
+      width: 100%;
+      appearance: none;
+      height: 8px;
+      border-radius: 999px;
+      background: linear-gradient(to right, var(--accent) 0%, var(--accent) var(--progress, 0%), rgba(255,255,255,0.12) var(--progress, 0%), rgba(255,255,255,0.12) 100%);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .seek::-webkit-slider-thumb {
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #fff;
+      border: 0;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+
+    .seek::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #fff;
+      border: 0;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+
+    .labels {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .switcher {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 14px;
+      background: rgba(255,255,255,0.035);
+      padding: 8px;
+      border-radius: 14px;
+    }
+
+    .ab-btn {
+      appearance: none;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: var(--panel-2);
+      color: var(--text);
+      padding: 12px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .ab-btn.active {
+      background: var(--accent);
+      color: #111;
+      border-color: transparent;
+    }
+
+    .help {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .error {
+      margin-top: 14px;
+      display: none;
+      background: rgba(255,95,95,0.08);
+      border: 1px solid rgba(255,95,95,0.22);
+      color: #ffd8d8;
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .error.show { display: block; }
+
+    @media (max-width: 680px) {
+      body { padding: 8px; }
+      .player { padding: 14px; }
+      .controls-row {
+        grid-template-columns: 1fr;
+      }
+      .time {
+        text-align: left;
+        min-width: 0;
+      }
+      .play-btn {
+        width: 100%;
+        height: 50px;
+        border-radius: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="player" id="playerRoot">
+    <div class="top">
+      <div class="title-wrap">
+        <div class="eyebrow">Audio comparison</div>
+        <h1 class="title" id="title">Mix Comparison</h1>
+      </div>
+      <div class="status">
+        <span class="dot"></span>
+        <span id="statusText">Loading audio…</span>
+      </div>
+    </div>
+
+    <div class="main">
+      <div class="controls-row">
+        <button class="play-btn" id="playPauseBtn" disabled>Play</button>
+
+        <div class="seek-wrap">
+          <input id="seekBar" class="seek" type="range" min="0" max="1000" value="0" step="1" aria-label="Seek through audio" />
+          <div class="labels">
+            <span id="leftLabel">Start</span>
+            <span id="rightLabel">End</span>
+          </div>
+        </div>
+
+        <div class="time" id="timeText">0:00 / 0:00</div>
+      </div>
+
+      <div class="switcher">
+        <button class="ab-btn active" id="mixedBtn" type="button">Mixed</button>
+        <button class="ab-btn" id="unmixedBtn" type="button">Unmixed</button>
+      </div>
+
+      <div class="help" id="helpText">
+        Click play, then switch between the two versions during playback.
+      </div>
+
+      <div class="error" id="errorBox"></div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const params = new URLSearchParams(window.location.search);
+
+      const config = {
+        title: params.get('title') || 'Mix Comparison',
+        mixedSrc: params.get('mixed') || '',
+        unmixedSrc: params.get('unmixed') || '',
+        mixedLabel: params.get('mixedLabel') || 'Mixed',
+        unmixedLabel: params.get('unmixedLabel') || 'Unmixed',
+        accent: params.get('accent') || '#ffffff',
+        bg: params.get('bg') || '#0f0f10',
+        panel: params.get('panel') || '#18181b',
+        help: params.get('help') || 'Click play, then switch between the two versions during playback.',
+        startOn: (params.get('startOn') || 'mixed').toLowerCase() === 'unmixed' ? 'unmixed' : 'mixed'
+      };
+
+      const titleEl = document.getElementById('title');
+      const playPauseBtn = document.getElementById('playPauseBtn');
+      const seekBar = document.getElementById('seekBar');
+      const timeText = document.getElementById('timeText');
+      const statusText = document.getElementById('statusText');
+      const mixedBtn = document.getElementById('mixedBtn');
+      const unmixedBtn = document.getElementById('unmixedBtn');
+      const leftLabel = document.getElementById('leftLabel');
+      const rightLabel = document.getElementById('rightLabel');
+      const helpText = document.getElementById('helpText');
+      const errorBox = document.getElementById('errorBox');
+      const root = document.getElementById('playerRoot');
+
+      titleEl.textContent = config.title;
+      mixedBtn.textContent = config.mixedLabel;
+      unmixedBtn.textContent = config.unmixedLabel;
+      leftLabel.textContent = config.mixedLabel;
+      rightLabel.textContent = config.unmixedLabel;
+      helpText.textContent = config.help;
+      document.documentElement.style.setProperty('--accent', config.accent);
+      document.documentElement.style.setProperty('--bg', config.bg);
+      document.documentElement.style.setProperty('--panel', config.panel);
+
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) {
+        fail('This browser does not support the Web Audio API needed for this player.');
+        return;
+      }
+
+      if (!config.mixedSrc || !config.unmixedSrc) {
+        fail('Missing audio file URLs. Add both ?mixed= and ?unmixed= to the player URL.');
+        return;
+      }
+
+      const ctx = new AudioContextClass();
+      const state = {
+        mixedBuffer: null,
+        unmixedBuffer: null,
+        mixedSource: null,
+        unmixedSource: null,
+        mixedGain: null,
+        unmixedGain: null,
+        duration: 0,
+        isReady: false,
+        isPlaying: false,
+        activeTrack: config.startOn,
+        offset: 0,
+        startedAt: 0,
+        rafId: null,
+        pendingSeekValue: null,
+      };
+
+      const HARD_END_TOLERANCE = 0.03;
+      const SWITCH_FADE_MS = 6;
+
+      init();
+
+      async function init() {
+        try {
+          statusText.textContent = 'Loading audio…';
+          const [mixedBuffer, unmixedBuffer] = await Promise.all([
+            loadBuffer(config.mixedSrc),
+            loadBuffer(config.unmixedSrc),
+          ]);
+
+          state.mixedBuffer = mixedBuffer;
+          state.unmixedBuffer = unmixedBuffer;
+          state.duration = Math.min(mixedBuffer.duration, unmixedBuffer.duration);
+          state.isReady = true;
+          playPauseBtn.disabled = false;
+          updateABButtons();
+          updateTimeUI(0);
+          statusText.textContent = 'Ready';
+        } catch (err) {
+          console.error(err);
+          fail('The audio files could not be loaded. Check that both URLs are public and point directly to audio files.');
+        }
+      }
+
+      async function loadBuffer(url) {
+        const res = await fetch(url, { mode: 'cors' });
+        if (!res.ok) {
+          throw new Error('Failed to fetch audio: ' + url + ' (' + res.status + ')');
+        }
+        const arr = await res.arrayBuffer();
+        return await ctx.decodeAudioData(arr.slice(0));
+      }
+
+      function fail(message) {
+        statusText.textContent = 'Error';
+        errorBox.textContent = message;
+        errorBox.classList.add('show');
+        playPauseBtn.disabled = true;
+      }
+
+      function formatTime(seconds) {
+        if (!Number.isFinite(seconds)) return '0:00';
+        const safe = Math.max(0, seconds);
+        const mins = Math.floor(safe / 60);
+        const secs = Math.floor(safe % 60);
+        return `${mins}:${String(secs).padStart(2, '0')}`;
+      }
+
+      function updateTimeUI(current) {
+        const duration = state.duration || 0;
+        timeText.textContent = `${formatTime(current)} / ${formatTime(duration)}`;
+        const progress = duration > 0 ? Math.min(100, (current / duration) * 100) : 0;
+        seekBar.value = String(Math.round((current / Math.max(duration, 0.001)) * 1000));
+        seekBar.style.setProperty('--progress', `${progress}%`);
+      }
+
+      function getCurrentTime() {
+        if (!state.isPlaying) return state.offset;
+        return Math.min(state.duration, state.offset + (ctx.currentTime - state.startedAt));
+      }
+
+      function cleanupSources() {
+        [state.mixedSource, state.unmixedSource].forEach((source) => {
+          if (source) {
+            try { source.onended = null; } catch (_) {}
+            try { source.stop(); } catch (_) {}
+            try { source.disconnect(); } catch (_) {}
+          }
+        });
+
+        [state.mixedGain, state.unmixedGain].forEach((gainNode) => {
+          if (gainNode) {
+            try { gainNode.disconnect(); } catch (_) {}
+          }
+        });
+
+        state.mixedSource = null;
+        state.unmixedSource = null;
+        state.mixedGain = null;
+        state.unmixedGain = null;
+      }
+
+      function buildSources(offsetSeconds) {
+        cleanupSources();
+
+        const mixedSource = ctx.createBufferSource();
+        const unmixedSource = ctx.createBufferSource();
+        const mixedGain = ctx.createGain();
+        const unmixedGain = ctx.createGain();
+
+        mixedSource.buffer = state.mixedBuffer;
+        unmixedSource.buffer = state.unmixedBuffer;
+
+        mixedSource.connect(mixedGain).connect(ctx.destination);
+        unmixedSource.connect(unmixedGain).connect(ctx.destination);
+
+        if (state.activeTrack === 'mixed') {
+          mixedGain.gain.value = 1;
+          unmixedGain.gain.value = 0;
+        } else {
+          mixedGain.gain.value = 0;
+          unmixedGain.gain.value = 1;
+        }
+
+        state.mixedSource = mixedSource;
+        state.unmixedSource = unmixedSource;
+        state.mixedGain = mixedGain;
+        state.unmixedGain = unmixedGain;
+
+        const when = ctx.currentTime + 0.03;
+        const safeOffset = Math.max(0, Math.min(offsetSeconds, state.duration - HARD_END_TOLERANCE));
+        mixedSource.start(when, safeOffset);
+        unmixedSource.start(when, safeOffset);
+        state.startedAt = when;
+        state.offset = safeOffset;
+
+        mixedSource.onended = handleEnded;
+        unmixedSource.onended = handleEnded;
+      }
+
+      function handleEnded() {
+        const current = getCurrentTime();
+        if (current < state.duration - HARD_END_TOLERANCE) return;
+        state.isPlaying = false;
+        state.offset = 0;
+        stopAnimation();
+        cleanupSources();
+        playPauseBtn.textContent = 'Play';
+        statusText.textContent = 'Ready';
+        updateTimeUI(0);
+      }
+
+      async function play() {
+        if (!state.isReady) return;
+
+        if (ctx.state === 'suspended') {
+          await ctx.resume();
+        }
+
+        if (state.offset >= state.duration - HARD_END_TOLERANCE) {
+          state.offset = 0;
+        }
+
+        buildSources(state.offset);
+        state.isPlaying = true;
+        playPauseBtn.textContent = 'Pause';
+        statusText.textContent = `Playing ${state.activeTrack === 'mixed' ? config.mixedLabel : config.unmixedLabel}`;
+        startAnimation();
+      }
+
+      function pause() {
+        if (!state.isPlaying) return;
+        state.offset = getCurrentTime();
+        state.isPlaying = false;
+        playPauseBtn.textContent = 'Play';
+        statusText.textContent = 'Paused';
+        stopAnimation();
+        cleanupSources();
+        updateTimeUI(state.offset);
+      }
+
+      function stopAnimation() {
+        if (state.rafId) {
+          cancelAnimationFrame(state.rafId);
+          state.rafId = null;
+        }
+      }
+
+      function startAnimation() {
+        stopAnimation();
+        const tick = () => {
+          const now = getCurrentTime();
+          updateTimeUI(now);
+          if (state.isPlaying) {
+            state.rafId = requestAnimationFrame(tick);
+          }
+        };
+        state.rafId = requestAnimationFrame(tick);
+      }
+
+      function updateABButtons() {
+        mixedBtn.classList.toggle('active', state.activeTrack === 'mixed');
+        unmixedBtn.classList.toggle('active', state.activeTrack === 'unmixed');
+      }
+
+      function switchTrack(track) {
+        if (track !== 'mixed' && track !== 'unmixed') return;
+        if (state.activeTrack === track) return;
+        state.activeTrack = track;
+        updateABButtons();
+
+        if (!state.isPlaying || !state.mixedGain || !state.unmixedGain) {
+          statusText.textContent = 'Ready';
+          return;
+        }
+
+        const now = ctx.currentTime;
+        const end = now + (SWITCH_FADE_MS / 1000);
+
+        state.mixedGain.gain.cancelScheduledValues(now);
+        state.unmixedGain.gain.cancelScheduledValues(now);
+        state.mixedGain.gain.setValueAtTime(state.mixedGain.gain.value, now);
+        state.unmixedGain.gain.setValueAtTime(state.unmixedGain.gain.value, now);
+
+        if (track === 'mixed') {
+          state.mixedGain.gain.linearRampToValueAtTime(1, end);
+          state.unmixedGain.gain.linearRampToValueAtTime(0, end);
+          statusText.textContent = `Playing ${config.mixedLabel}`;
+        } else {
+          state.mixedGain.gain.linearRampToValueAtTime(0, end);
+          state.unmixedGain.gain.linearRampToValueAtTime(1, end);
+          statusText.textContent = `Playing ${config.unmixedLabel}`;
+        }
+      }
+
+      async function seekTo(seconds) {
+        const safe = Math.max(0, Math.min(seconds, state.duration || 0));
+
+        if (!state.isPlaying) {
+          state.offset = safe;
+          updateTimeUI(safe);
+          return;
+        }
+
+        if (ctx.state === 'suspended') {
+          await ctx.resume();
+        }
+
+        buildSources(safe);
+        statusText.textContent = `Playing ${state.activeTrack === 'mixed' ? config.mixedLabel : config.unmixedLabel}`;
+      }
+
+      playPauseBtn.addEventListener('click', async () => {
+        try {
+          if (!state.isPlaying) {
+            await play();
+          } else {
+            pause();
+          }
+        } catch (err) {
+          console.error(err);
+          fail('Playback could not start. Try clicking play again, or check the browser console.');
+        }
+      });
+
+      mixedBtn.addEventListener('click', () => switchTrack('mixed'));
+      unmixedBtn.addEventListener('click', () => switchTrack('unmixed'));
+
+      seekBar.addEventListener('input', () => {
+        if (!state.duration) return;
+        const seconds = (Number(seekBar.value) / 1000) * state.duration;
+        updateTimeUI(seconds);
+      });
+
+      seekBar.addEventListener('change', async () => {
+        if (!state.duration) return;
+        const seconds = (Number(seekBar.value) / 1000) * state.duration;
+        try {
+          await seekTo(seconds);
+        } catch (err) {
+          console.error(err);
+          fail('Seeking failed.');
+        }
+      });
+
+      window.addEventListener('keydown', (event) => {
+        if (event.code === 'Space') {
+          event.preventDefault();
+          playPauseBtn.click();
+        }
+        if (event.key.toLowerCase() === 'a') {
+          switchTrack('mixed');
+        }
+        if (event.key.toLowerCase() === 'b') {
+          switchTrack('unmixed');
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

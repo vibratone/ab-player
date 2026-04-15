@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>A/B Audio Comparison Player</title>
+  <title>A/B Audio Player</title>
   <style>
     :root {
       --bg: #0f0f10;
@@ -42,30 +42,6 @@
       gap: 14px;
     }
 
-    .page-head {
-      display: none;
-      padding: 10px 4px 2px;
-    }
-
-    .page-head.show {
-      display: block;
-    }
-
-    .page-eyebrow {
-      font-size: 12px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 6px;
-    }
-
-    .page-title {
-      margin: 0;
-      font-size: 28px;
-      line-height: 1.1;
-      font-weight: 800;
-    }
-
     .players-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -94,14 +70,6 @@
     .title-wrap {
       min-width: 0;
       flex: 1 1 220px;
-    }
-
-    .eyebrow {
-      font-size: 12px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 6px;
     }
 
     .title {
@@ -315,16 +283,11 @@
       .controls-row { grid-template-columns: 1fr; }
       .time { text-align: left; min-width: 0; }
       .play-btn { width: 100%; height: 50px; border-radius: 14px; }
-      .page-title { font-size: 24px; }
     }
   </style>
 </head>
 <body>
   <div class="shell">
-    <div class="page-head" id="pageHead">
-      <div class="page-eyebrow" id="pageEyebrow">Audio comparisons</div>
-      <h1 class="page-title" id="pageTitle"></h1>
-    </div>
     <div class="players-grid" id="playersGrid"></div>
   </div>
 
@@ -332,7 +295,6 @@
     <div class="player">
       <div class="top">
         <div class="title-wrap">
-          <div class="eyebrow" data-role="eyebrow">Audio comparison</div>
           <h2 class="title" data-role="title">Mix Comparison</h2>
         </div>
         <div class="status">
@@ -388,14 +350,11 @@
         return sharedAudioContext;
       }
       const pageConfig = {
-        pageTitle: params.get('pageTitle') || '',
-        pageEyebrow: params.get('pageEyebrow') || 'Audio comparisons',
         accent: params.get('accent') || '#ffffff',
         bg: params.get('bg') || '#0f0f10',
         panel: params.get('panel') || '#18181b',
         panel2: params.get('panel2') || '#222226',
         help: params.get('help') || 'Click play, then switch between the two versions during playback.',
-        cardEyebrow: params.get('cardEyebrow') || 'Audio comparison',
       };
 
       document.documentElement.style.setProperty('--accent', pageConfig.accent);
@@ -403,17 +362,8 @@
       document.documentElement.style.setProperty('--panel', pageConfig.panel);
       document.documentElement.style.setProperty('--panel-2', pageConfig.panel2);
 
-      const pageHead = document.getElementById('pageHead');
-      const pageTitle = document.getElementById('pageTitle');
-      const pageEyebrow = document.getElementById('pageEyebrow');
       const playersGrid = document.getElementById('playersGrid');
       const template = document.getElementById('playerTemplate');
-
-      if (pageConfig.pageTitle) {
-        pageHead.classList.add('show');
-        pageTitle.textContent = pageConfig.pageTitle;
-        pageEyebrow.textContent = pageConfig.pageEyebrow;
-      }
 
       const examples = getExamples(params, pageConfig);
       if (!examples.length) {
@@ -438,7 +388,6 @@
             if (!unmixed || !mixed) continue;
             examples.push({
               title: searchParams.get(`${prefix}Title`) || `Example ${i}`,
-              eyebrow: searchParams.get(`${prefix}Eyebrow`) || globalConfig.cardEyebrow,
               unmixedSrc: unmixed,
               mixedSrc: mixed,
               unmixedLabel: searchParams.get(`${prefix}UnmixedLabel`) || 'Unmixed',
@@ -455,7 +404,6 @@
         if (singleUnmixed && singleMixed) {
           examples.push({
             title: searchParams.get('title') || 'Mix Comparison',
-            eyebrow: searchParams.get('eyebrow') || globalConfig.cardEyebrow,
             unmixedSrc: singleUnmixed,
             mixedSrc: singleMixed,
             unmixedLabel: searchParams.get('unmixedLabel') || 'Unmixed',
@@ -475,7 +423,6 @@
         this.registry = registryRef;
 
         this.titleEl = root.querySelector('[data-role="title"]');
-        this.eyebrowEl = root.querySelector('[data-role="eyebrow"]');
         this.statusText = root.querySelector('[data-role="statusText"]');
         this.playPauseBtn = root.querySelector('[data-role="playPauseBtn"]');
         this.seekBar = root.querySelector('[data-role="seekBar"]');
@@ -488,7 +435,6 @@
         this.errorBox = root.querySelector('[data-role="errorBox"]');
 
         this.titleEl.textContent = config.title;
-        this.eyebrowEl.textContent = config.eyebrow;
         this.unmixedBtn.textContent = config.unmixedLabel;
         this.mixedBtn.textContent = config.mixedLabel;
         this.leftLabel.textContent = config.unmixedLabel;

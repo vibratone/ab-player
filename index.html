@@ -245,13 +245,6 @@
       border-color: transparent;
     }
 
-    .help {
-      margin-top: 12px;
-      font-size: 13px;
-      color: var(--muted);
-      line-height: 1.45;
-    }
-
     .error {
       margin-top: 14px;
       display: none;
@@ -330,7 +323,6 @@
           <button class="ab-btn" data-role="mixedBtn" type="button">Mixed</button>
         </div>
 
-        <div class="help" data-role="helpText">Click play, then switch between the two versions during playback.</div>
         <div class="error" data-role="errorBox"></div>
       </div>
     </div>
@@ -349,12 +341,12 @@
         }
         return sharedAudioContext;
       }
+
       const pageConfig = {
         accent: params.get('accent') || '#ffffff',
         bg: params.get('bg') || '#0f0f10',
         panel: params.get('panel') || '#18181b',
         panel2: params.get('panel2') || '#222226',
-        help: params.get('help') || 'Click play, then switch between the two versions during playback.',
       };
 
       document.documentElement.style.setProperty('--accent', pageConfig.accent);
@@ -365,7 +357,7 @@
       const playersGrid = document.getElementById('playersGrid');
       const template = document.getElementById('playerTemplate');
 
-      const examples = getExamples(params, pageConfig);
+      const examples = getExamples(params);
       if (!examples.length) {
         const empty = document.createElement('div');
         empty.className = 'empty-state';
@@ -376,7 +368,7 @@
 
       const registry = { players: new Map() };
 
-      function getExamples(searchParams, globalConfig) {
+      function getExamples(searchParams) {
         const count = Number(searchParams.get('count') || 0);
         const examples = [];
 
@@ -386,13 +378,13 @@
             const unmixed = searchParams.get(`${prefix}Unmixed`) || '';
             const mixed = searchParams.get(`${prefix}Mixed`) || '';
             if (!unmixed || !mixed) continue;
+
             examples.push({
               title: searchParams.get(`${prefix}Title`) || `Example ${i}`,
               unmixedSrc: unmixed,
               mixedSrc: mixed,
               unmixedLabel: searchParams.get(`${prefix}UnmixedLabel`) || 'Unmixed',
               mixedLabel: searchParams.get(`${prefix}MixedLabel`) || 'Mixed',
-              help: searchParams.get(`${prefix}Help`) || globalConfig.help,
               startOn: ((searchParams.get(`${prefix}StartOn`) || 'unmixed').toLowerCase() === 'mixed') ? 'mixed' : 'unmixed',
             });
           }
@@ -408,7 +400,6 @@
             mixedSrc: singleMixed,
             unmixedLabel: searchParams.get('unmixedLabel') || 'Unmixed',
             mixedLabel: searchParams.get('mixedLabel') || 'Mixed',
-            help: searchParams.get('help') || globalConfig.help,
             startOn: ((searchParams.get('startOn') || 'unmixed').toLowerCase() === 'mixed') ? 'mixed' : 'unmixed',
           });
         }
@@ -431,7 +422,6 @@
         this.mixedBtn = root.querySelector('[data-role="mixedBtn"]');
         this.leftLabel = root.querySelector('[data-role="leftLabel"]');
         this.rightLabel = root.querySelector('[data-role="rightLabel"]');
-        this.helpText = root.querySelector('[data-role="helpText"]');
         this.errorBox = root.querySelector('[data-role="errorBox"]');
 
         this.titleEl.textContent = config.title;
@@ -439,7 +429,6 @@
         this.mixedBtn.textContent = config.mixedLabel;
         this.leftLabel.textContent = config.unmixedLabel;
         this.rightLabel.textContent = config.mixedLabel;
-        this.helpText.textContent = config.help;
 
         this.ctx = null;
         this.state = {

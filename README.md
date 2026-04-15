@@ -1,4 +1,4 @@
-[README-v3.md](https://github.com/user-attachments/files/26615090/README-v3.md)
+[README-v5-no-headings.md](https://github.com/user-attachments/files/26761960/README-v5-no-headings.md)
 # Wix / GitHub A/B Audio Comparison Player
 
 This player lets visitors compare two versions of the same audio in sync.
@@ -32,26 +32,23 @@ https://vibratone.github.io/ab-player/?unmixed=https://vibratone.github.io/ab-pl
 
 There are 3 groups of parameters:
 
-1. **Global page parameters**
+1. **Global styling parameters**
 2. **Single-card parameters**
 3. **Multi-card parameters**
 
 ---
 
-## 1) Global page parameters
+## 1) Global styling parameters
 
-These affect the page or act as shared defaults.
+These act as shared defaults and visual settings. The player no longer shows a main page title or any eyebrow labels.
 
 | Parameter | What it does | Example |
 |---|---|---|
-| `pageTitle` | Adds a page heading above the cards. If omitted, the page heading stays hidden. | `pageTitle=Before%20and%20After` |
-| `pageEyebrow` | Small label above the page title. | `pageEyebrow=Studio%20Comparisons` |
 | `accent` | Main accent colour used for buttons, active states, and progress. Use hex encoded in URL. | `accent=%23ffffff` |
 | `bg` | Card background colour. | `bg=%230f0f10` |
 | `panel` | Main panel colour. | `panel=%2318181b` |
 | `panel2` | Secondary panel/button colour. | `panel2=%23222226` |
 | `help` | Default help text used on cards unless overridden per card. | `help=Switch%20between%20versions%20during%20playback.` |
-| `cardEyebrow` | Default small label shown above each card title unless overridden per card. | `cardEyebrow=Audio%20Comparison` |
 | `count` | Number of cards to build in multi-card mode. | `count=2` |
 
 ---
@@ -65,7 +62,6 @@ Use these when you only want **one** player card.
 | `unmixed` | Yes | URL of the unmixed audio file. | `unmixed=https://.../song-unmixed.mp3` |
 | `mixed` | Yes | URL of the mixed audio file. | `mixed=https://.../song-mixed.mp3` |
 | `title` | No | Card title. | `title=Mix%20Comparison` |
-| `eyebrow` | No | Small label above the title. | `eyebrow=Audio%20Comparison` |
 | `unmixedLabel` | No | Label for the left/default version. | `unmixedLabel=Unmixed` |
 | `mixedLabel` | No | Label for the right version. | `mixedLabel=Mixed` |
 | `help` | No | Help text shown below the buttons. | `help=Click%20play%20then%20switch.` |
@@ -80,7 +76,7 @@ https://vibratone.github.io/ab-player/?title=Mixed%20vs%20Unmixed&unmixed=https:
 ### Single-card example with more styling
 
 ```text
-https://vibratone.github.io/ab-player/?title=Chorus%20Comparison&eyebrow=Studio%20A%2FB&unmixed=https://vibratone.github.io/ab-player/audio/song-unmixed.mp3&mixed=https://vibratone.github.io/ab-player/audio/song-mixed.mp3&unmixedLabel=Raw&mixedLabel=Finished&startOn=unmixed&accent=%23d6b16f&bg=%230b0b0d&panel=%23141418&panel2=%231e1e24&help=Play%20the%20clip%20and%20switch%20between%20the%20two%20versions.
+https://vibratone.github.io/ab-player/?title=Chorus%20Comparison&unmixed=https://vibratone.github.io/ab-player/audio/song-unmixed.mp3&mixed=https://vibratone.github.io/ab-player/audio/song-mixed.mp3&unmixedLabel=Raw&mixedLabel=Finished&startOn=unmixed&accent=%23d6b16f&bg=%230b0b0d&panel=%23141418&panel2=%231e1e24&help=Play%20the%20clip%20and%20switch%20between%20the%20two%20versions.
 ```
 
 ---
@@ -120,7 +116,6 @@ and so on.
 | Parameter | What it does | Example |
 |---|---|---|
 | `example1Title` | Card title | `example1Title=Example%201` |
-| `example1Eyebrow` | Small label above the card title | `example1Eyebrow=Verse` |
 | `example1UnmixedLabel` | Label for left/default version | `example1UnmixedLabel=Unmixed` |
 | `example1MixedLabel` | Label for right version | `example1MixedLabel=Mixed` |
 | `example1Help` | Help text for this card | `example1Help=Switch%20while%20playing.` |
@@ -133,13 +128,13 @@ For card 3, use `example3...`
 ### Two-card example
 
 ```text
-https://vibratone.github.io/ab-player/?pageTitle=Before%20and%20After&count=2&example1Title=Example%201&example1Unmixed=https://vibratone.github.io/ab-player/audio/song1-unmixed.mp3&example1Mixed=https://vibratone.github.io/ab-player/audio/song1-mixed.mp3&example1UnmixedLabel=Unmixed&example1MixedLabel=Mixed&example2Title=Example%202&example2Unmixed=https://vibratone.github.io/ab-player/audio/song2-unmixed.mp3&example2Mixed=https://vibratone.github.io/ab-player/audio/song2-mixed.mp3&example2UnmixedLabel=Unmixed&example2MixedLabel=Mixed&accent=%23ffffff
+https://vibratone.github.io/ab-player/?count=2&example1Title=Example%201&example1Unmixed=https://vibratone.github.io/ab-player/audio/song1-unmixed.mp3&example1Mixed=https://vibratone.github.io/ab-player/audio/song1-mixed.mp3&example1UnmixedLabel=Unmixed&example1MixedLabel=Mixed&example2Title=Example%202&example2Unmixed=https://vibratone.github.io/ab-player/audio/song2-unmixed.mp3&example2Mixed=https://vibratone.github.io/ab-player/audio/song2-mixed.mp3&example2UnmixedLabel=Unmixed&example2MixedLabel=Mixed&accent=%23ffffff
 ```
 
 ### Three-card example
 
 ```text
-https://vibratone.github.io/ab-player/?pageTitle=Mix%20Examples&count=3&example1Title=Verse&example1Unmixed=https://vibratone.github.io/ab-player/audio/verse-unmixed.mp3&example1Mixed=https://vibratone.github.io/ab-player/audio/verse-mixed.mp3&example2Title=Chorus&example2Unmixed=https://vibratone.github.io/ab-player/audio/chorus-unmixed.mp3&example2Mixed=https://vibratone.github.io/ab-player/audio/chorus-mixed.mp3&example3Title=Bridge&example3Unmixed=https://vibratone.github.io/ab-player/audio/bridge-unmixed.mp3&example3Mixed=https://vibratone.github.io/ab-player/audio/bridge-mixed.mp3
+https://vibratone.github.io/ab-player/?count=3&example1Title=Verse&example1Unmixed=https://vibratone.github.io/ab-player/audio/verse-unmixed.mp3&example1Mixed=https://vibratone.github.io/ab-player/audio/verse-mixed.mp3&example2Title=Chorus&example2Unmixed=https://vibratone.github.io/ab-player/audio/chorus-unmixed.mp3&example2Mixed=https://vibratone.github.io/ab-player/audio/chorus-mixed.mp3&example3Title=Bridge&example3Unmixed=https://vibratone.github.io/ab-player/audio/bridge-unmixed.mp3&example3Mixed=https://vibratone.github.io/ab-player/audio/bridge-mixed.mp3
 ```
 
 ---
